@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class BallHandler : MonoBehaviour
 {
@@ -22,12 +24,22 @@ public class BallHandler : MonoBehaviour
 
         SpawnNewBall();
     }
+
+    void OnEnable() 
+    {
+        EnhancedTouchSupport.Enable();
+    }
+
+    void OnDisable() 
+    {
+        EnhancedTouchSupport.Disable();
+    }
     
     void Update()
     {
         if (currentBallRB == null) { return; }
 
-        if (!Touchscreen.current.primaryTouch.press.IsPressed())
+        if (Touch.activeTouches.Count == 0)
         {
             if (isDragging)
             {
@@ -38,10 +50,17 @@ public class BallHandler : MonoBehaviour
             return;
         }
 
+        Vector2 touchPosition = new Vector2();
+
+        foreach (Touch touch in Touch.activeTouches)
+        {
+            touchPosition += touch.screenPosition;
+        }
+
+        touchPosition /= Touch.activeTouches.Count;
+
         isDragging = true;
         currentBallRB.isKinematic = true;
-
-        Vector2 touchPosition = Touchscreen.current.primaryTouch.position.ReadValue();
 
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(touchPosition);
 
